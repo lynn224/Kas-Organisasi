@@ -1,352 +1,265 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Kas Organisasi</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>
-  :root{
-    --hijau:#1e8e3e; --hijau-bg:#e6f4ea;
-    --kuning:#b06000; --kuning-bg:#fef7e0;
-    --merah:#c5221f; --merah-bg:#fce8e6;
-    --abu:#5f6368;   --abu-bg:#f1f3f4;
-    --biru:#1a73e8;
-  }
-  *{box-sizing:border-box;}
-  body{font-family:-apple-system,Roboto,Segoe UI,sans-serif;margin:0;background:#f6f7f9;color:#202124;}
-  header{background:#1a73e8;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
-  header h1{font-size:18px;margin:0;}
-  main{max-width:900px;margin:0 auto;padding:16px;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
-  .card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.1);}
-  .card .label{font-size:12px;color:#5f6368;}
-  .card .value{font-size:18px;font-weight:600;margin-top:4px;}
-  .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-  .toolbar input, .toolbar select{padding:8px;border:1px solid #dadce0;border-radius:6px;font-size:14px;}
-  table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;}
-  th,td{padding:10px 8px;text-align:left;font-size:14px;border-bottom:1px solid #eee;}
-  th{background:#f1f3f4;cursor:pointer;user-select:none;}
-  tr.hijau{background:var(--hijau-bg);} tr.hijau td:first-child{border-left:4px solid var(--hijau);}
-  tr.kuning{background:var(--kuning-bg);} tr.kuning td:first-child{border-left:4px solid var(--kuning);}
-  tr.merah{background:var(--merah-bg);} tr.merah td:first-child{border-left:4px solid var(--merah);}
-  tr.abu{background:var(--abu-bg);} tr.abu td:first-child{border-left:4px solid var(--abu);}
-  .legend{display:flex;gap:14px;font-size:12px;margin:10px 0;flex-wrap:wrap;color:#5f6368;}
-  .legend span{display:inline-flex;align-items:center;gap:5px;}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
-  .dot.hijau{background:var(--hijau);} .dot.kuning{background:var(--kuning);} .dot.merah{background:var(--merah);} .dot.abu{background:var(--abu);}
-  #editorPanel{margin-top:28px;border-top:2px solid #dadce0;padding-top:16px;}
-  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-  .tab-btn{padding:8px 12px;border:1px solid #dadce0;background:#fff;border-radius:6px;cursor:pointer;font-size:13px;}
-  .tab-btn.active{background:#1a73e8;color:#fff;border-color:#1a73e8;}
-  .form-box{background:#fff;padding:16px;border-radius:10px;display:none;}
-  .form-box.active{display:block;}
-  .form-box label{display:block;font-size:13px;margin:10px 0 4px;color:#5f6368;}
-  .form-box input, .form-box select{width:100%;padding:9px;border:1px solid #dadce0;border-radius:6px;font-size:14px;}
-  .form-box button{margin-top:14px;background:#1a73e8;color:#fff;border:none;padding:10px 16px;border-radius:6px;font-size:14px;cursor:pointer;}
-  #msg{font-size:13px;margin-top:10px;padding:8px;border-radius:6px;display:none;}
-  #msg.ok{background:var(--hijau-bg);color:var(--hijau);display:block;}
-  #msg.err{background:var(--merah-bg);color:var(--merah);display:block;}
-  #loginBox{font-size:13px;}
-  #notEditor{font-size:13px;color:var(--merah);margin-top:10px;}
-  .loading{text-align:center;color:#5f6368;padding:20px;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kas Organisasi</title>
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --primary: #2563eb;
+            --border: #e2e8f0;
+            
+            /* Status Soft Colors */
+            --lunas-bg: #dcfce7; --lunas-text: #15803d;
+            --ringan-bg: #fef9c3; --ringan-text: #a16207;
+            --berat-bg: #fee2e2; --berat-text: #b91c1c;
+            --resign-bg: #f1f5f9; --resign-text: #475569;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 24px; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        header { margin-bottom: 32px; }
+        header h1 { font-size: 24px; font-weight: 700; color: var(--text-main); }
+        header p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+
+        /* Dashboard Grid Cards */
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .card-value { font-size: 22px; font-weight: 700; color: var(--text-main); margin-top: 8px; }
+        
+        /* Highlight Specific Cards */
+        .card.highlight-saldo { border-left: 4px solid var(--primary); }
+        .card.highlight-tunggakan { border-left: 4px solid #ef4444; }
+
+        /* Controls Section */
+        .controls { background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+        .search-box { flex: 1; min-width: 260px; position: relative; }
+        .search-box input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .filter-tabs { display: flex; gap: 8px; }
+        .tab-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active, .tab-btn:hover { background: var(--primary); color: #fff; }
+
+        /* Table Container & Table Styling */
+        .table-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background: #f8fafc; padding: 14px 16px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        
+        /* Custom Modern Row Colors (Soft Pastel Mode) */
+        tr.status-lunas { background-color: rgba(34, 197, 94, 0.04); }
+        tr.status-lunas:hover { background-color: rgba(34, 197, 94, 0.08); }
+        tr.status-ringan { background-color: rgba(234, 179, 8, 0.04); }
+        tr.status-ringan:hover { background-color: rgba(234, 179, 8, 0.08); }
+        tr.status-berat { background-color: rgba(239, 68, 68, 0.04); }
+        tr.status-berat:hover { background-color: rgba(239, 68, 68, 0.08); }
+        tr.status-resign { background-color: rgba(148, 163, 184, 0.03); color: #94a3b8; }
+
+        /* Badge Pills inside Table */
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .badge.lunas { background: var(--lunas-bg); color: var(--lunas-text); }
+        .badge.ringan { background: var(--ringan-bg); color: var(--ringan-text); }
+        .badge.berat { background: var(--berat-bg); color: var(--berat-text); }
+        .badge.resign { background: var(--resign-bg); color: var(--resign-text); }
+
+        /* Loading Animation State */
+        .loading { text-align: center; padding: 40px; font-size: 15px; color: var(--text-muted); font-weight: 500; }
+        
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; align-items: stretch; }
+            .filter-tabs { overflow-x: auto; padding-bottom: 4px; }
+            th, td { padding: 12px; font-size: 13px; }
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <h1>💰 Dashboard Kas Organisasi</h1>
-  <div id="loginBox">
-    <div id="g_id_onload"
-      data-client_id="772148006961-3pd0brkn062vmpf161e8pmh2q791tmlc.apps.googleusercontent.com"
-      data-callback="handleCredentialResponse">
+<div class="container">
+    <header>
+        <h1>Dashboard Kas & Monitoring Pembayaran</h1>
+        <p>Data real-time tersinkronisasi otomatis dari Google Sheets</p>
+    </header>
+
+    <div id="loadingState" class="loading">Menghubungkan ke Google Sheets dan memuat data...</div>
+
+    <div id="mainDashboard" style="display: none;">
+        
+        <div class="grid-stats">
+            <div class="card highlight-saldo">
+                <div class="card-title">Saldo Sisa</div>
+                <div class="card-value" id="valSaldo">-</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Total Pemasukan</div>
+                <div class="card-value" id="valPemasukan" style="color: #16a34a;">-</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Total Pengeluaran</div>
+                <div class="card-value" id="valPengeluaran" style="color: #dc2626;">-</div>
+            </div>
+            <div class="card highlight-tunggakan">
+                <div class="card-title">Total Tunggakan</div>
+                <div class="card-value" id="valTotalTunggakan">-</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Aktif / Resign</div>
+                <div class="card-value" id="valStatusAnggota">-</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Anggota Menunggak</div>
+                <div class="card-value" id="valAnggotaMenunggak">-</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cari nama anggota organisasi..." onkeyup="filterData()">
+            </div>
+            <div class="filter-tabs">
+                <button class="tab-btn active" onclick="filterStatus('all', this)">Semua</button>
+                <button class="tab-btn" onclick="filterStatus('aktif', this)">Aktif</button>
+                <button class="tab-btn" onclick="filterStatus('menunggak', this)">Menunggak</button>
+                <button class="tab-btn" onclick="filterStatus('resign', this)">Resign</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Anggota</th>
+                        <th>Status Status</th>
+                        <th>Bulan Menunggak</th>
+                        <th>Total Tunggakan</th>
+                        <th>Status Bulan Ini</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+        </div>
     </div>
-    <div class="g_id_signin" data-type="standard" data-size="medium"></div>
-  </div>
-</header>
-
-<main>
-  <div id="dashboardCards" class="cards"><div class="loading">Memuat data...</div></div>
-
-  <h3>Monitoring Pembayaran</h3>
-  <div class="legend">
-    <span><i class="dot hijau"></i> Lunas</span>
-    <span><i class="dot kuning"></i> Menunggak 1-2 bulan</span>
-    <span><i class="dot merah"></i> Menunggak 3+ bulan</span>
-    <span><i class="dot abu"></i> Resign</span>
-  </div>
-  <div class="toolbar">
-    <input id="searchBox" type="text" placeholder="Cari nama...">
-    <select id="filterStatus">
-      <option value="">Semua Status</option>
-      <option value="Aktif">Aktif</option>
-      <option value="Resign">Resign</option>
-      <option value="Menunggak">Menunggak saja</option>
-    </select>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th data-key="nama">Nama</th>
-        <th data-key="status">Status</th>
-        <th data-key="bulanMenunggak">Bulan Menunggak</th>
-        <th data-key="totalTunggakan">Total Tunggakan</th>
-        <th data-key="statusBulanIni">Bulan Ini</th>
-      </tr>
-    </thead>
-    <tbody id="monitoringBody">
-      <tr><td colspan="5" class="loading">Memuat data...</td></tr>
-    </tbody>
-  </table>
-
-  <div id="editorPanel" style="display:none;">
-    <h3>🔧 Panel Editor</h3>
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="iuran">Database Iuran</button>
-      <button class="tab-btn" data-tab="pengeluaran">Pengeluaran</button>
-      <button class="tab-btn" data-tab="anggota">Master Anggota</button>
-      <button class="tab-btn" data-tab="setting">Setting</button>
-    </div>
-
-    <div class="form-box active" id="form-iuran">
-      <label>Nama Anggota</label>
-      <select id="iuranNama"></select>
-      <label>Nominal (Rp)</label>
-      <input id="iuranNominal" type="number" placeholder="10000">
-      <label>Metode</label>
-      <select id="iuranMetode"></select>
-      <button onclick="submitIuran()">Simpan Pembayaran</button>
-    </div>
-
-    <div class="form-box" id="form-pengeluaran">
-      <label>Tanggal</label>
-      <input id="pengTanggal" type="date">
-      <label>Kategori</label>
-      <select id="pengKategori"></select>
-      <label>Keterangan</label>
-      <input id="pengKeterangan" type="text" placeholder="Beli galon air">
-      <label>Nominal (Rp)</label>
-      <input id="pengNominal" type="number" placeholder="20000">
-      <button onclick="submitPengeluaran()">Simpan Pengeluaran</button>
-    </div>
-
-    <div class="form-box" id="form-anggota">
-      <p style="font-size:13px;color:#5f6368">Tambah anggota baru, atau edit nama/status anggota lama (tidak ada hapus data).</p>
-      <label>Anggota (kosongkan utk tambah baru)</label>
-      <select id="anggotaPilih"><option value="">-- Anggota Baru --</option></select>
-      <label>Nama</label>
-      <input id="anggotaNama" type="text" placeholder="Nama anggota">
-      <label>Status</label>
-      <select id="anggotaStatus"></select>
-      <button onclick="submitAnggota()">Simpan Anggota</button>
-    </div>
-
-    <div class="form-box" id="form-setting">
-      <label>Iuran Bulanan saat ini: <b id="curIuran">-</b></label>
-      <input id="settingIuran" type="number" placeholder="Nilai baru Iuran Bulanan">
-      <button onclick="submitSetting('Iuran Bulanan','settingIuran')">Update Iuran Bulanan</button>
-      <label style="margin-top:20px;">Support HO saat ini: <b id="curHO">-</b></label>
-      <input id="settingHO" type="number" placeholder="Nilai baru Support HO">
-      <button onclick="submitSetting('Support HO','settingHO')">Update Support HO</button>
-    </div>
-
-    <div id="msg"></div>
-  </div>
-  <div id="notEditor" style="display:none;">Akun ini belum memiliki akses edit.</div>
-</main>
+</div>
 
 <script>
-// ================= KONFIGURASI =================
-var API_URL = 'https://script.google.com/u/0/home/projects/1-NWuwP4XjgVqZl6rZrSHWWbkyiLN9D8_2QpiDpwuCEgplHWYuDgmOHRw/edit'; // .../exec
-// ================================================
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwRXYaKmrC_k-PFNajcm2M_ICpOCcs8XZg0toz0DLPRrK9jI5nIZoWvLoPaEoRFPVs0fQ/exec'; 
 
-var monitoringData = [];
-var idToken = null;
+    let globalData = [];
+    let currentFilter = 'all';
 
-// ---------- Ambil data publik ----------
-async function loadDashboard(){
-  var res = await fetch(API_URL + '?action=dashboard');
-  var json = await res.json();
-  var el = document.getElementById('dashboardCards');
-  if(!json.success){ el.innerHTML = '<div class="loading">Gagal memuat data</div>'; return; }
-  el.innerHTML = json.data.map(function(d){
-    var val = d.value;
-    if (typeof val === 'number') val = 'Rp ' + val.toLocaleString('id-ID');
-    return '<div class="card"><div class="label">'+d.label+'</div><div class="value">'+val+'</div></div>';
-  }).join('');
-}
+    async function loadDashboard() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            // 1. Set values to Dashboard Cards
+            document.getElementById('valSaldo').innerText = data.dashboard.saldoSisa;
+            document.getElementById('valPemasukan').innerText = data.dashboard.totalPemasukan;
+            document.getElementById('valPengeluaran').innerText = data.dashboard.totalPengeluaran;
+            document.getElementById('valTotalTunggakan').innerText = data.dashboard.totalTunggakan;
+            document.getElementById('valStatusAnggota').innerText = `${data.dashboard.anggotaAktif} / ${data.dashboard.anggotaResign}`;
+            document.getElementById('valAnggotaMenunggak').innerText = data.dashboard.anggotaMenunggak;
 
-async function loadMonitoring(){
-  var res = await fetch(API_URL + '?action=monitoring');
-  var json = await res.json();
-  if(!json.success) return;
-  monitoringData = json.data;
-  renderMonitoring();
-}
+            // 2. Render Table rows
+            globalData = data.monitoring;
+            renderTable(globalData);
 
-function statusColor(row){
-  if (row.status === 'Resign') return 'abu';
-  var bulan = Number(row.bulanMenunggak) || 0;
-  if (bulan <= 0) return 'hijau';
-  if (bulan <= 2) return 'kuning';
-  return 'merah';
-}
-
-function renderMonitoring(){
-  var search = document.getElementById('searchBox').value.toLowerCase();
-  var filter = document.getElementById('filterStatus').value;
-  var rows = monitoringData.filter(function(r){
-    if (search && r.nama.toLowerCase().indexOf(search) === -1) return false;
-    if (filter === 'Aktif' && r.status !== 'Aktif') return false;
-    if (filter === 'Resign' && r.status !== 'Resign') return false;
-    if (filter === 'Menunggak' && !(Number(r.bulanMenunggak) > 0)) return false;
-    return true;
-  });
-  var body = document.getElementById('monitoringBody');
-  if (rows.length === 0){ body.innerHTML = '<tr><td colspan="5" class="loading">Tidak ada data</td></tr>'; return; }
-  body.innerHTML = rows.map(function(r){
-    var cls = statusColor(r);
-    var tunggakan = 'Rp ' + (Number(r.totalTunggakan)||0).toLocaleString('id-ID');
-    return '<tr class="'+cls+'"><td>'+r.nama+'</td><td>'+r.status+'</td><td>'+r.bulanMenunggak+'</td><td>'+tunggakan+'</td><td>'+r.statusBulanIni+'</td></tr>';
-  }).join('');
-}
-
-document.getElementById('searchBox').addEventListener('input', renderMonitoring);
-document.getElementById('filterStatus').addEventListener('change', renderMonitoring);
-
-var sortAsc = {};
-document.querySelectorAll('th[data-key]').forEach(function(th){
-  th.addEventListener('click', function(){
-    var key = th.getAttribute('data-key');
-    sortAsc[key] = !sortAsc[key];
-    monitoringData.sort(function(a,b){
-      var va=a[key], vb=b[key];
-      if (typeof va === 'string') return sortAsc[key] ? va.localeCompare(vb) : vb.localeCompare(va);
-      return sortAsc[key] ? va-vb : vb-va;
-    });
-    renderMonitoring();
-  });
-});
-
-// ---------- Login Google & cek akses editor ----------
-function handleCredentialResponse(response){
-  idToken = response.credential;
-  fetch(API_URL, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ action:'checkAccess', idToken: idToken })
-  }).then(function(r){return r.json();}).then(function(json){
-    if (json.success && json.isEditor){
-      document.getElementById('editorPanel').style.display='block';
-      document.getElementById('notEditor').style.display='none';
-      loadFormLists();
-    } else {
-      document.getElementById('notEditor').style.display='block';
+            // Switch view state
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+        } catch (error) {
+            document.getElementById('loadingState').innerText = "Gagal memuat data dari Google Sheets. Periksa kembali konfigurasi API URL.";
+            console.error(error);
+        }
     }
-  });
-}
 
-// ---------- Ambil daftar pilihan utk form (dropdown) ----------
-async function loadFormLists(){
-  var res = await fetch(API_URL + '?action=formLists');
-  var json = await res.json();
-  if(!json.success) return;
-  var d = json.data;
+    function renderTable(dataList) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
 
-  fillSelect('iuranNama', d.anggotaList.filter(function(a){return a.status==='Aktif';}).map(function(a){return a.nama;}));
-  fillSelect('iuranMetode', d.metodeList);
-  fillSelect('pengKategori', d.kategoriList);
-  fillSelect('anggotaStatus', d.statusList);
+        if(dataList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Tidak ada data ditemukan</td></tr>`;
+            return;
+        }
 
-  var anggotaPilih = document.getElementById('anggotaPilih');
-  d.anggotaList.forEach(function(a){
-    var opt = document.createElement('option');
-    opt.value = a.nama; opt.textContent = a.nama + ' ('+a.status+')';
-    anggotaPilih.appendChild(opt);
-  });
-  anggotaPilih.addEventListener('change', function(){
-    var found = d.anggotaList.find(function(a){return a.nama===anggotaPilih.value;});
-    document.getElementById('anggotaNama').value = found ? found.nama : '';
-    document.getElementById('anggotaStatus').value = found ? found.status : 'Aktif';
-  });
+        dataList.forEach(row => {
+            let rowClass = '';
+            let badgeClass = '';
+            let badgeText = '';
 
-  document.getElementById('curIuran').textContent = 'Rp ' + Number(d.iuranBulanan).toLocaleString('id-ID');
-  document.getElementById('curHO').textContent = 'Rp ' + Number(d.supportHO).toLocaleString('id-ID');
-}
+            // Menentukan status visual berdasarkan aturan PRD
+            if (row.status.toLowerCase() === 'resign') {
+                rowClass = 'status-resign';
+                badgeClass = 'resign';
+                badgeText = 'Resign';
+            } else if (row.bulanMenunggak === 0) {
+                rowClass = 'status-lunas';
+                badgeClass = 'lunas';
+                badgeText = 'Lunas';
+            } else if (row.bulanMenunggak >= 1 && row.bulanMenunggak <= 2) {
+                rowClass = 'status-ringan';
+                badgeClass = 'ringan';
+                badgeText = `Nunggak ${row.bulanMenunggak} bln`;
+            } else if (row.bulanMenunggak >= 3) {
+                rowClass = 'status-berat';
+                badgeClass = 'berat';
+                badgeText = `Macet ${row.bulanMenunggak} bln`;
+            }
 
-function fillSelect(id, options){
-  var el = document.getElementById(id);
-  el.innerHTML = options.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('');
-}
+            const tr = document.createElement('tr');
+            tr.className = rowClass;
+            tr.innerHTML = `
+                <td style="font-weight: 600; color: var(--text-main);">${row.nama}</td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                <td style="font-weight: 500;">${row.bulanMenunggak} Bulan</td>
+                <td style="font-weight: 600; color: #b91c1c;">${row.totalTunggakan}</td>
+                <td><span style="font-size: 13px; font-weight: 500;">${row.statusBulanIni || '-'}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 
-// ---------- Tabs ----------
-document.querySelectorAll('.tab-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    document.querySelectorAll('.form-box').forEach(function(f){f.classList.remove('active');});
-    btn.classList.add('active');
-    document.getElementById('form-'+btn.getAttribute('data-tab')).classList.add('active');
-  });
-});
+    function filterData() {
+        const searchVal = document.getElementById("searchInput").value.toLowerCase();
+        
+        const filtered = globalData.filter(item => {
+            const matchesSearch = item.nama.toLowerCase().includes(searchVal);
+            
+            let matchesTab = true;
+            if (currentFilter === 'aktif') {
+                matchesTab = item.status.toLowerCase() === 'aktif';
+            } else if (currentFilter === 'menunggak') {
+                matchesTab = item.status.toLowerCase() === 'aktif' && item.bulanMenunggak > 0;
+            } else if (currentFilter === 'resign') {
+                matchesTab = item.status.toLowerCase() === 'resign';
+            }
+            
+            return matchesSearch && matchesTab;
+        });
 
-// ---------- Kirim data (POST ke Apps Script) ----------
-function showMsg(text, ok){
-  var el = document.getElementById('msg');
-  el.textContent = text;
-  el.className = ok ? 'ok' : 'err';
-}
+        renderTable(filtered);
+    }
 
-async function postAction(action, payload){
-  var res = await fetch(API_URL, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ action: action, idToken: idToken, payload: payload })
-  });
-  var json = await res.json();
-  if (json.success){
-    showMsg('Berhasil disimpan ✔', true);
-    loadDashboard(); loadMonitoring();
-  } else {
-    showMsg('Gagal: ' + json.error, false);
-  }
-  return json.success;
-}
+    function filterStatus(status, btn) {
+        // Toggle Active Tab Button Style
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        currentFilter = status;
+        filterData(); // Jalankan filter gabungan dengan search input
+    }
 
-function submitIuran(){
-  postAction('addIuran', {
-    nama: document.getElementById('iuranNama').value,
-    nominal: document.getElementById('iuranNominal').value,
-    metode: document.getElementById('iuranMetode').value
-  });
-}
-function submitPengeluaran(){
-  postAction('addPengeluaran', {
-    tanggal: document.getElementById('pengTanggal').value,
-    kategori: document.getElementById('pengKategori').value,
-    keterangan: document.getElementById('pengKeterangan').value,
-    nominal: document.getElementById('pengNominal').value
-  });
-}
-function submitAnggota(){
-  var pilih = document.getElementById('anggotaPilih').value;
-  postAction(pilih ? 'updateAnggota' : 'addAnggota', pilih ? {
-    namaLama: pilih,
-    namaBaru: document.getElementById('anggotaNama').value,
-    status: document.getElementById('anggotaStatus').value
-  } : {
-    nama: document.getElementById('anggotaNama').value,
-    status: document.getElementById('anggotaStatus').value
-  });
-}
-function submitSetting(parameter, inputId){
-  var nilai = document.getElementById(inputId).value;
-  if (!nilai) { showMsg('Isi nilai baru dulu', false); return; }
-  postAction('updateSetting', { parameter: parameter, nilai: nilai });
-}
-
-// ---------- Init ----------
-loadDashboard();
-loadMonitoring();
+    // Muat data saat halaman web dibuka
+    window.onload = loadDashboard;
 </script>
 </body>
 </html>
