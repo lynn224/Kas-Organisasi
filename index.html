@@ -181,6 +181,7 @@
       <button id="loginBtn" onclick="openLogin()">Masuk</button>
       <div id="userChip">
         <div class="who">Halo, <b id="whoNama"></b></div>
+        <button onclick="openChangePassword()">Ganti Password</button>
         <button onclick="doLogout()">Keluar</button>
       </div>
     </div>
@@ -199,6 +200,24 @@
         <button class="primary" onclick="submitLogin()">Masuk</button>
       </div>
       <div class="err" id="loginErr"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="changePasswordModal">
+    <div class="modal">
+      <button class="close-x" onclick="closeChangePassword()">✕</button>
+      <h3>Ganti Password</h3>
+      <label>Password Lama</label>
+      <input id="cpOld" type="password" autocomplete="current-password">
+      <label>Password Baru</label>
+      <input id="cpNew" type="password" autocomplete="new-password">
+      <label>Ulangi Password Baru</label>
+      <input id="cpConfirm" type="password" autocomplete="new-password">
+      <div class="btn-row">
+        <button class="ghost" onclick="closeChangePassword()">Batal</button>
+        <button class="primary" onclick="submitChangePassword()">Simpan</button>
+      </div>
+      <div class="err" id="cpErr"></div>
     </div>
   </div>
 
@@ -312,7 +331,7 @@
 
 <script>
 // ================= KONFIGURASI =================
-var API_URL = 'https://script.google.com/macros/s/AKfycbz4IyPorWBTaYyrXC7A-uCnQO2qjTPoX4MHhnYPiFFQdNhe5pJjBpMPyYOoBcD5doW9-A/exec'; // .../exec
+var API_URL = 'GANTI_DENGAN_URL_APPS_SCRIPT_WEB_APP'; // .../exec
 // ================================================
 
 var monitoringData = [];
@@ -394,6 +413,49 @@ document.querySelectorAll('th[data-key]').forEach(function(th){
 function openLogin(){ document.getElementById('loginModal').classList.add('show'); document.getElementById('loginErr').style.display='none'; }
 function closeLogin(){ document.getElementById('loginModal').classList.remove('show'); }
 
+function openChangePassword(){
+  document.getElementById('cpOld').value='';
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpConfirm').value='';
+  document.getElementById('cpErr').style.display='none';
+  document.getElementById('changePasswordModal').classList.add('show');
+}
+function closeChangePassword(){ document.getElementById('changePasswordModal').classList.remove('show'); }
+
+async function submitChangePassword(){
+  var oldPass = document.getElementById('cpOld').value;
+  var newPass = document.getElementById('cpNew').value;
+  var confirmPass = document.getElementById('cpConfirm').value;
+  var errEl = document.getElementById('cpErr');
+
+  if (!oldPass || !newPass || !confirmPass){
+    errEl.textContent = 'Semua kolom wajib diisi'; errEl.style.display='block'; return;
+  }
+  if (newPass.length < 6){
+    errEl.textContent = 'Password baru minimal 6 karakter'; errEl.style.display='block'; return;
+  }
+  if (newPass !== confirmPass){
+    errEl.textContent = 'Konfirmasi password baru tidak cocok'; errEl.style.display='block'; return;
+  }
+
+  var res = await fetch(API_URL, {
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action:'changePassword', token: session.token, payload:{ oldPassword: oldPass, newPassword: newPass } })
+  });
+  var json = await res.json();
+  if (json.success){
+    closeChangePassword();
+    showMsg('Password berhasil diganti ✔', true);
+  } else {
+    errEl.textContent = json.error; errEl.style.display='block';
+    if (json.error && json.error.indexOf('Sesi') !== -1){
+      closeChangePassword();
+      doLogout();
+      openLogin();
+    }
+  }
+}
+
 // ---------- Detail Pemasukan/Pengeluaran ----------
 async function openDetail(jenis){
   document.getElementById('detailModal').classList.add('show');
@@ -447,6 +509,7 @@ async function submitLogin(){
   var json = await res.json();
   if (json.success){
     session = { token: json.token, nama: json.nama, jabatan: json.jabatan };
+    localStorage.setItem('kasSessionToken', json.token);
     document.getElementById('whoNama').textContent = json.nama;
     document.getElementById('loginBtn').style.display='none';
     document.getElementById('userChip').style.display='flex';
@@ -459,11 +522,51 @@ async function submitLogin(){
   }
 }
 
-function doLogout(){
+async function doLogout(){
+  var tokenToRevoke = session.token;
+  // Bersihkan sisi client dulu supaya UI langsung responsif
   session = { token:null, nama:null, jabatan:null };
+  localStorage.removeItem('kasSessionToken');
   document.getElementById('loginBtn').style.display='inline-block';
   document.getElementById('userChip').style.display='none';
   document.getElementById('editorPanel').style.display='none';
+
+  // Cabut token di server juga, supaya token lama tidak bisa dipakai lagi walau bocor
+  if (tokenToRevoke){
+    try {
+      await fetch(API_URL, {
+        method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ action:'logout', token: tokenToRevoke })
+      });
+    } catch(e){ /* koneksi gagal saat logout - tidak masalah, sesi client sudah dibersihkan */ }
+  }
+}
+
+// Dipanggil sekali saat halaman dimuat: cek apakah ada token tersimpan dari sesi sebelumnya,
+// lalu verifikasi ke server (juga mengecek Status masih aktif di sheet Editor).
+async function restoreSession(){
+  var token = localStorage.getItem('kasSessionToken');
+  if (!token) return;
+  try {
+    var res = await fetch(API_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'verifySession', token: token })
+    });
+    var json = await res.json();
+    if (json.success){
+      session = { token: token, nama: json.nama, jabatan: json.jabatan };
+      document.getElementById('whoNama').textContent = json.nama;
+      document.getElementById('loginBtn').style.display='none';
+      document.getElementById('userChip').style.display='flex';
+      document.getElementById('editorPanel').style.display='block';
+      loadFormLists();
+    } else {
+      // Token sudah tidak valid (logout dari device lain / dinonaktifkan admin / kedaluwarsa)
+      localStorage.removeItem('kasSessionToken');
+    }
+  } catch(e){
+    // Gagal konek - biarkan token tersimpan, coba lagi saat refresh berikutnya
+  }
 }
 
 async function loadFormLists(){
@@ -514,7 +617,14 @@ async function postAction(action, payload){
   });
   var json = await res.json();
   if (json.success){ showMsg('Berhasil disimpan ✔', true); loadDashboard(); loadMonitoring(); }
-  else { showMsg('Gagal: ' + json.error, false); }
+  else {
+    showMsg('Gagal: ' + json.error, false);
+    if (json.error && json.error.indexOf('Sesi') !== -1){
+      // Sesi sudah dicabut (logout dari device lain / dinonaktifkan admin) - keluarkan dari UI juga
+      doLogout();
+      openLogin();
+    }
+  }
   return json.success;
 }
 function submitIuran(){
@@ -551,6 +661,7 @@ function submitSetting(parameter, inputId){
 
 loadDashboard();
 loadMonitoring();
+restoreSession();
 </script>
 </body>
 </html>
